@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
-import openai
 import os
+import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -22,7 +22,8 @@ async def respond(req: MessageRequest):
     prompt = f"{style_prompt.get(req.style.lower(), '')} Ecco il messaggio ricevuto da un ospite su Airbnb:\n\n\"{req.message}\"\n\nRispondi nel modo indicato."
 
     try:
-        response = openai.ChatCompletion.create(
+        client = openai.OpenAI()
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Sei un assistente esperto per host di Airbnb."},
@@ -31,7 +32,7 @@ async def respond(req: MessageRequest):
             temperature=0.7,
             max_tokens=200
         )
-        reply = response["choices"][0]["message"]["content"]
+        reply = response.choices[0].message.content
         return {"response": reply}
     except Exception as e:
         return {"error": str(e)}
